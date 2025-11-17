@@ -32,3 +32,46 @@ sudo chown -R $USER:$USER /var/www/html
 ```
 
 To access the folder from the Files app, press `Ctrl+L` in the Files window to input a path directly: `/var/www/html`.
+
+## YARP proxy
+
+The proxy is setup in the usual way, in the example to proxy from the endpoint `/proxy/**` to `http://192.168.56.101`.
+
+
+```json
+{
+  "ReverseProxy": {
+    "Routes": {
+      "route1": {
+        "ClusterId": "cluster1",
+        "AuthorizationPolicy": "proxyPolicy",
+        "Match": {
+          "Path": "/proxy/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathRemovePrefix": "/proxy"
+          }
+        ]
+      }
+    },
+    "Clusters": {
+      "cluster1": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://192.168.56.101/"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+An Authorization Policy named "proxyPolicy", is configured:
+
+```csharp
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("proxyPolicy", policy =>
+        policy.RequireAuthenticatedUser());
+```
